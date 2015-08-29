@@ -30,7 +30,7 @@ impl DXNode {
                     },
                     "Frame" => {
                         let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
-                        system.set_property(&ent, "texture".to_string(), propnode_parser::parse("@parent.texture").unwrap());
+                        system.set_property(&ent, "diffuse".to_string(), propnode_parser::parse("@parent.diffuse").unwrap());
                         let transform_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
