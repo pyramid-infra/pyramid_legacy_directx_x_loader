@@ -1,5 +1,5 @@
 [package]
-name = "pyramid_legacy_directx_x"
+name = "pyramid_legacy_directx_x_loader"
 version = "0.1.0"
 authors = ["Fredrik Noren <fredrik.jw.noren@gmail.com>"]
 
@@ -8,3 +8,6 @@ peg = "0.3.0"
 
 [dependencies.pyramid]
 path = "../pyramid"
+
+[dependencies.ppromise]
+path = "../ppromise"
