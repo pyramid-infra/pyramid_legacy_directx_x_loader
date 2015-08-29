@@ -30,6 +30,29 @@ impl DXNode {
                     },
                     "Frame" => {
                         let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
+                        let transform_node = children.iter().find(|x| match x {
+                            &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
+                            _ => false
+                        });
+                        if let Some(&DXNode::Obj { children: ref transform_children, .. }) = transform_node {
+                            match &transform_children[0] {
+                                &DXNode::Values(ref vals) => {
+                                    system.set_property(&ent, "transform".to_string(), PropNode::PropTransform(Box::new(PropTransform {
+                                        name: "mul".to_string(),
+                                        arg: PropNode::Array(vec![
+                                            PropNode::DependencyReference(NamedPropRef { entity_name: "parent".to_string(), property_key: "transform".to_string() }),
+                                            PropNode::PropTransform(Box::new(PropTransform {
+                                                name: "matrix".to_string(),
+                                                arg: PropNode::FloatArray(vals[0][0].clone())
+                                                }))
+                                            ])
+                                        })));
+                                },
+                                _ => {}
+                            }
+                        } else {
+                            system.set_property(&ent, "transform".to_string(), propnode_parser::parse("@parent.transform").unwrap());
+                        }
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
                             _ => false
@@ -90,7 +113,6 @@ impl DXNode {
                                     })
                                 }
                                 )));
-                            system.set_property(&ent, "transform".to_string(), propnode_parser::parse("@parent.transform").unwrap());
                             system.set_property(&ent, "texture".to_string(), propnode_parser::parse("@parent.texture").unwrap());
                         }
                         for n in children {
