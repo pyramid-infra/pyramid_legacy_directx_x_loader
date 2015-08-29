@@ -26,6 +26,15 @@ pub struct LegacyDirectXXSubSystem {
     x_files: HashMap<PropNode, DXNode>
 }
 
+impl LegacyDirectXXSubSystem {
+    pub fn new(root_path: PathBuf) -> LegacyDirectXXSubSystem {
+        LegacyDirectXXSubSystem {
+            root_path: root_path,
+            x_files: HashMap::new()
+        }
+    }
+}
+
 fn dxnode_from_propnode(root_path: &PathBuf, propnode: &PropNode) -> Result<DXNode, PropTranslateErr> {
     let filename = try!(propnode.as_string());
     let path_buff = root_path.join(Path::new(filename));
