@@ -1,0 +1,10 @@
+[package]
+name = "pyramid_legacy_directx_x"
+version = "0.1.0"
+authors = ["Fredrik Noren <fredrik.jw.noren@gmail.com>"]
+
+[dependencies]
+peg = "0.3.0"
+
+[dependencies.pyramid]
+path = "../pyramid"
