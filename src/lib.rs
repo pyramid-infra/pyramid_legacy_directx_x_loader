@@ -4,7 +4,6 @@ peg_file! legacy_directx_x_parse("legacy_directx_x.rustpeg");
 
 #[macro_use]
 extern crate pyramid;
-extern crate ppromise;
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -18,7 +17,6 @@ mod legacy_directx_x_test;
 
 use legacy_directx_x::*;
 
-use ppromise::*;
 use pyramid::interface::*;
 use pyramid::propnode::*;
 use pyramid::document::*;

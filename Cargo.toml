@@ -8,6 +8,3 @@ peg = "0.3.0"
 
 [dependencies.pyramid]
 path = "../pyramid"
-
-[dependencies.ppromise]
-path = "../ppromise"
