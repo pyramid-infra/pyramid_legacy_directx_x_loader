@@ -1,7 +1,7 @@
 // DirectX .x is an old legacy model format. Not recommended for any use, only reason it's
 // here is because a lot of the old DML files were in .x format
 
-use pyramid::*;
+use pyramid::propnode_parser as propnode_parser;
 use pyramid::document::*;
 use pyramid::propnode::*;
 use pyramid::interface::*;
@@ -20,7 +20,6 @@ pub enum DXNode {
 
 impl DXNode {
     pub fn append_to_system(&self, system: &mut ISystem, parent: &EntityId) {
-        println!("APPEND {:?}", self);
         match self {
             &DXNode::Obj { ref name, ref arg, ref children } => {
                 match name.as_str() {
@@ -90,7 +89,9 @@ impl DXNode {
                                         "indices".to_string() => PropNode::IntegerArray(indices)
                                     })
                                 }
-                                )))
+                                )));
+                            system.set_property(&ent, "transform".to_string(), propnode_parser::parse("@parent.transform").unwrap());
+                            system.set_property(&ent, "texture".to_string(), propnode_parser::parse("@parent.texture").unwrap());
                         }
                         for n in children {
                             n.append_to_system(system, &ent);
