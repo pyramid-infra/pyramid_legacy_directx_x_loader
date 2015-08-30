@@ -68,7 +68,7 @@ impl DXNode {
                                 &DXNode::Values(ref vals) => vals,
                                 _ => panic!("Can't find indices for mesh {:?}", arg)
                             };
-                            let texcords_node = match mesh_children.iter().find(|x| {
+                            let texcoords_node = match mesh_children.iter().find(|x| {
                                 if let &&DXNode::Obj { ref name, .. } = x {
                                     if name == "MeshTextureCoords" {
                                         return true;
@@ -87,8 +87,8 @@ impl DXNode {
                                 verts.push(verts_node[i][0][0]);
                                 verts.push(verts_node[i][1][0]);
                                 verts.push(verts_node[i][2][0]);
-                                verts.push(texcords_node[i][0][0]);
-                                verts.push(texcords_node[i][1][0]);
+                                verts.push(texcoords_node[i][0][0]);
+                                verts.push(texcoords_node[i][1][0]);
                             }
                             let mut indices = vec![];
                             for inds in indices_node {
@@ -109,6 +109,7 @@ impl DXNode {
                                 PropTransform {
                                     name: "static_mesh".to_string(),
                                     arg: PropNode::Object(hashmap!{
+                                        "layout".to_string() => propnode_parser::parse("[['position', 3], ['texcoord', 2]]").unwrap(),
                                         "vertices".to_string() => PropNode::FloatArray(verts),
                                         "indices".to_string() => PropNode::IntegerArray(indices)
                                     })
