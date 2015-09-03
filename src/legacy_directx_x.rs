@@ -19,6 +19,68 @@ pub enum DXNode {
 }
 
 impl DXNode {
+    fn mesh_to_pon(&self) -> Result<Pon, String> {
+        if let &DXNode::Obj { children: ref mesh_children, .. } = self {
+
+            let verts_node = match &mesh_children[1] {
+                &DXNode::Values(ref vals) => vals,
+                _ => return Err("Can't find vertices for mesh".to_string())
+            };
+            let indices_node = match &mesh_children[3] {
+                &DXNode::Values(ref vals) => vals,
+                _ => return Err("Can't find indices for mesh".to_string())
+            };
+            let texcoords_node = match mesh_children.iter().find(|x| {
+                if let &&DXNode::Obj { ref name, .. } = x {
+                    if name == "MeshTextureCoords" {
+                        return true;
+                    }
+                }
+                false
+            }) {
+                Some(&DXNode::Obj { ref children, .. }) => match &children[1] {
+                    &DXNode::Values(ref values) => values,
+                    _ => return Err("Can't find texcords for mesh".to_string())
+                },
+                _ => return Err("Can't find texcords for mesh".to_string())
+            };
+            let mut verts = vec![];
+            for i in 0..verts_node.len() {
+                verts.push(verts_node[i][0][0]);
+                verts.push(verts_node[i][1][0]);
+                verts.push(verts_node[i][2][0]);
+                verts.push(texcoords_node[i][0][0]);
+                verts.push(texcoords_node[i][1][0]);
+            }
+            let mut indices = vec![];
+            for inds in indices_node {
+                if inds[1].len() == 4 {
+                    indices.push(inds[1][0] as i64);
+                    indices.push(inds[1][1] as i64);
+                    indices.push(inds[1][2] as i64);
+                    indices.push(inds[1][0] as i64);
+                    indices.push(inds[1][2] as i64);
+                    indices.push(inds[1][3] as i64);
+                } else if inds[1].len() == 3 {
+                    indices.push(inds[1][0] as i64);
+                    indices.push(inds[1][1] as i64);
+                    indices.push(inds[1][2] as i64);
+                }
+            }
+            Ok(Pon::PropTransform(Box::new(
+                PropTransform {
+                    name: "static_mesh".to_string(),
+                    arg: Pon::Object(hashmap!{
+                        "layout".to_string() => pon_parser::parse("[['position', 3], ['texcoord', 2]]").unwrap(),
+                        "vertices".to_string() => Pon::FloatArray(verts),
+                        "indices".to_string() => Pon::IntegerArray(indices)
+                    })
+                }
+                )))
+        } else {
+            Err("Not a mesh".to_string())
+        }
+    }
     pub fn append_to_system(&self, system: &mut ISystem, parent: &EntityId) {
         match self {
             &DXNode::Obj { ref name, ref arg, ref children } => {
@@ -58,63 +120,11 @@ impl DXNode {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
                             _ => false
                         });
-                        if let Some(&DXNode::Obj { children: ref mesh_children, .. }) = mesh_node {
-
-                            let verts_node = match &mesh_children[1] {
-                                &DXNode::Values(ref vals) => vals,
-                                _ => panic!("Can't find vertices for mesh {:?}", arg)
-                            };
-                            let indices_node = match &mesh_children[3] {
-                                &DXNode::Values(ref vals) => vals,
-                                _ => panic!("Can't find indices for mesh {:?}", arg)
-                            };
-                            let texcoords_node = match mesh_children.iter().find(|x| {
-                                if let &&DXNode::Obj { ref name, .. } = x {
-                                    if name == "MeshTextureCoords" {
-                                        return true;
-                                    }
-                                }
-                                false
-                            }) {
-                                Some(&DXNode::Obj { ref children, .. }) => match &children[1] {
-                                    &DXNode::Values(ref values) => values,
-                                    _ => panic!("Can't find texcords for mesh {:?}", arg)
-                                },
-                                _ => panic!("Can't find texcords for mesh {:?}", arg)
-                            };
-                            let mut verts = vec![];
-                            for i in 0..verts_node.len() {
-                                verts.push(verts_node[i][0][0]);
-                                verts.push(verts_node[i][1][0]);
-                                verts.push(verts_node[i][2][0]);
-                                verts.push(texcoords_node[i][0][0]);
-                                verts.push(texcoords_node[i][1][0]);
-                            }
-                            let mut indices = vec![];
-                            for inds in indices_node {
-                                if inds[1].len() == 4 {
-                                    indices.push(inds[1][0] as i64);
-                                    indices.push(inds[1][1] as i64);
-                                    indices.push(inds[1][2] as i64);
-                                    indices.push(inds[1][0] as i64);
-                                    indices.push(inds[1][2] as i64);
-                                    indices.push(inds[1][3] as i64);
-                                } else if inds[1].len() == 3 {
-                                    indices.push(inds[1][0] as i64);
-                                    indices.push(inds[1][1] as i64);
-                                    indices.push(inds[1][2] as i64);
-                                }
-                            }
-                            system.set_property(&ent, "mesh".to_string(), Pon::PropTransform(Box::new(
-                                PropTransform {
-                                    name: "static_mesh".to_string(),
-                                    arg: Pon::Object(hashmap!{
-                                        "layout".to_string() => pon_parser::parse("[['position', 3], ['texcoord', 2]]").unwrap(),
-                                        "vertices".to_string() => Pon::FloatArray(verts),
-                                        "indices".to_string() => Pon::IntegerArray(indices)
-                                    })
-                                }
-                                )));
+                        if let Some(mesh) = mesh_node {
+                            system.set_property(&ent, "mesh".to_string(), match mesh.mesh_to_pon() {
+                                Ok(mesh) => mesh,
+                                Err(err) => panic!("Failed to parse mesh for {:?}: {}", arg, err)
+                            });
                         }
                         for n in children {
                             n.append_to_system(system, &ent);
