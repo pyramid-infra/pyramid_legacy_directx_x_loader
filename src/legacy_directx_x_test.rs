@@ -46,8 +46,9 @@ fn test_load_file_1() {
     let mesh = system.get_property_value(&mesh_ent, "mesh");
     assert_eq!(mesh, Ok(Pon::TypedPon(Box::new(
         TypedPon {
-            name: "static_mesh".to_string(),
-            arg: Pon::Object(hashmap!{
+            type_name: "static_mesh".to_string(),
+            data: Pon::Object(hashmap!{
+                "layout".to_string() => Pon::Array(vec![Pon::Array(vec![Pon::String("position".to_string()), Pon::Integer(3)]), Pon::Array(vec![Pon::String("texcoord".to_string()), Pon::Integer(2)])]),
                 "vertices".to_string() => Pon::FloatArray(vec![
                         -4.382881, 6.532472, 1.292141, 0.899474, -0.274396,
                         -3.229391, 6.532472, 0.391409, 0.678246, -0.182760
@@ -113,8 +114,9 @@ fn test_load_file_2() {
     let mesh = system.get_property_value(&mesh_ent, "mesh");
     assert_eq!(mesh, Ok(Pon::TypedPon(Box::new(
         TypedPon {
-            name: "static_mesh".to_string(),
-            arg: Pon::Object(hashmap!{
+            type_name: "static_mesh".to_string(),
+            data: Pon::Object(hashmap!{
+                "layout".to_string() => Pon::Array(vec![Pon::Array(vec![Pon::String("position".to_string()), Pon::Integer(3)]), Pon::Array(vec![Pon::String("texcoord".to_string()), Pon::Integer(2)])]),
                 "vertices".to_string() => Pon::FloatArray(vec![
                     0.856444, 0.000000, -1.511363, 0.706463, -0.177258,
                     0.856444, 0.000000, -1.511363, 0.706463, -0.177258
