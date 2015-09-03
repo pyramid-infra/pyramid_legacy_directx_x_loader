@@ -67,10 +67,10 @@ impl DXNode {
                     indices.push(inds[1][2] as i64);
                 }
             }
-            Ok(Pon::PropTransform(Box::new(
-                PropTransform {
-                    name: "static_mesh".to_string(),
-                    arg: Pon::Object(hashmap!{
+            Ok(Pon::TypedPon(Box::new(
+                TypedPon {
+                    type_name: "static_mesh".to_string(),
+                    data: Pon::Object(hashmap!{
                         "layout".to_string() => pon_parser::parse("[['position', 3], ['texcoord', 2]]").unwrap(),
                         "vertices".to_string() => Pon::FloatArray(verts),
                         "indices".to_string() => Pon::IntegerArray(indices)
@@ -85,13 +85,13 @@ impl DXNode {
         if let &DXNode::Obj { children: ref transform_children, .. } = self {
             match &transform_children[0] {
                 &DXNode::Values(ref vals) => {
-                    Ok(Pon::PropTransform(Box::new(PropTransform {
-                        name: "mul".to_string(),
-                        arg: Pon::Array(vec![
+                    Ok(Pon::TypedPon(Box::new(TypedPon {
+                        type_name: "mul".to_string(),
+                        data: Pon::Array(vec![
                             Pon::DependencyReference(NamedPropRef { entity_name: "parent".to_string(), property_key: "transform".to_string() }),
-                            Pon::PropTransform(Box::new(PropTransform {
-                                name: "matrix".to_string(),
-                                arg: Pon::FloatArray(vals[0][0].clone())
+                            Pon::TypedPon(Box::new(TypedPon {
+                                type_name: "matrix".to_string(),
+                                data: Pon::FloatArray(vals[0][0].clone())
                                 }))
                             ])
                         })))
@@ -136,6 +136,8 @@ impl DXNode {
                         for n in children {
                             n.append_to_system(system, &ent);
                         }
+                    },
+                    "AnimationSet" => {
                     },
                     _ => {}
                 }

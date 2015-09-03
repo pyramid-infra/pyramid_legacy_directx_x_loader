@@ -44,8 +44,8 @@ fn test_load_file_1() {
     dxnode.append_to_system(&mut system, &ent);
     let mesh_ent = system.get_entity_by_name("polySurface1").unwrap();
     let mesh = system.get_property_value(&mesh_ent, "mesh");
-    assert_eq!(mesh, Ok(Pon::PropTransform(Box::new(
-        PropTransform {
+    assert_eq!(mesh, Ok(Pon::TypedPon(Box::new(
+        TypedPon {
             name: "static_mesh".to_string(),
             arg: Pon::Object(hashmap!{
                 "vertices".to_string() => Pon::FloatArray(vec![
@@ -111,8 +111,8 @@ fn test_load_file_2() {
     dxnode.append_to_system(&mut system, &ent);
     let mesh_ent = system.get_entity_by_name("polySurface1").unwrap();
     let mesh = system.get_property_value(&mesh_ent, "mesh");
-    assert_eq!(mesh, Ok(Pon::PropTransform(Box::new(
-        PropTransform {
+    assert_eq!(mesh, Ok(Pon::TypedPon(Box::new(
+        TypedPon {
             name: "static_mesh".to_string(),
             arg: Pon::Object(hashmap!{
                 "vertices".to_string() => Pon::FloatArray(vec![
