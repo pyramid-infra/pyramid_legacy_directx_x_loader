@@ -35,7 +35,7 @@ impl LegacyDirectXXSubSystem {
     }
 }
 
-fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PropTranslateErr> {
+fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PonTranslateErr> {
     let filename = try!(pon.as_string());
     let path_buff = root_path.join(Path::new(filename));
     let path = path_buff.as_path();
@@ -54,7 +54,7 @@ fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PropTransla
             println!("Loaded .x {}", filename);
             Ok(dx)
         },
-        Err(err) => Err(PropTranslateErr::Generic(format!("Failed to load .x: {:?}: {:?}", path, err)))
+        Err(err) => Err(PonTranslateErr::Generic(format!("Failed to load .x: {:?}: {:?}", path, err)))
     }
 }
 
