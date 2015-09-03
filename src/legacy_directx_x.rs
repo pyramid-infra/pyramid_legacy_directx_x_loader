@@ -1,9 +1,9 @@
 // DirectX .x is an old legacy model format. Not recommended for any use, only reason it's
 // here is because a lot of the old DML files were in .x format
 
-use pyramid::propnode_parser as propnode_parser;
+use pyramid::pon_parser as pon_parser;
 use pyramid::document::*;
-use pyramid::propnode::*;
+use pyramid::pon::*;
 use pyramid::interface::*;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -30,7 +30,7 @@ impl DXNode {
                     },
                     "Frame" => {
                         let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
-                        system.set_property(&ent, "diffuse".to_string(), propnode_parser::parse("@parent.diffuse").unwrap());
+                        system.set_property(&ent, "diffuse".to_string(), pon_parser::parse("@parent.diffuse").unwrap());
                         let transform_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
@@ -38,13 +38,13 @@ impl DXNode {
                         if let Some(&DXNode::Obj { children: ref transform_children, .. }) = transform_node {
                             match &transform_children[0] {
                                 &DXNode::Values(ref vals) => {
-                                    system.set_property(&ent, "transform".to_string(), PropNode::PropTransform(Box::new(PropTransform {
+                                    system.set_property(&ent, "transform".to_string(), Pon::PropTransform(Box::new(PropTransform {
                                         name: "mul".to_string(),
-                                        arg: PropNode::Array(vec![
-                                            PropNode::DependencyReference(NamedPropRef { entity_name: "parent".to_string(), property_key: "transform".to_string() }),
-                                            PropNode::PropTransform(Box::new(PropTransform {
+                                        arg: Pon::Array(vec![
+                                            Pon::DependencyReference(NamedPropRef { entity_name: "parent".to_string(), property_key: "transform".to_string() }),
+                                            Pon::PropTransform(Box::new(PropTransform {
                                                 name: "matrix".to_string(),
-                                                arg: PropNode::FloatArray(vals[0][0].clone())
+                                                arg: Pon::FloatArray(vals[0][0].clone())
                                                 }))
                                             ])
                                         })));
@@ -52,7 +52,7 @@ impl DXNode {
                                 _ => {}
                             }
                         } else {
-                            system.set_property(&ent, "transform".to_string(), propnode_parser::parse("@parent.transform").unwrap());
+                            system.set_property(&ent, "transform".to_string(), pon_parser::parse("@parent.transform").unwrap());
                         }
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
@@ -105,13 +105,13 @@ impl DXNode {
                                     indices.push(inds[1][2] as i64);
                                 }
                             }
-                            system.set_property(&ent, "mesh".to_string(), PropNode::PropTransform(Box::new(
+                            system.set_property(&ent, "mesh".to_string(), Pon::PropTransform(Box::new(
                                 PropTransform {
                                     name: "static_mesh".to_string(),
-                                    arg: PropNode::Object(hashmap!{
-                                        "layout".to_string() => propnode_parser::parse("[['position', 3], ['texcoord', 2]]").unwrap(),
-                                        "vertices".to_string() => PropNode::FloatArray(verts),
-                                        "indices".to_string() => PropNode::IntegerArray(indices)
+                                    arg: Pon::Object(hashmap!{
+                                        "layout".to_string() => pon_parser::parse("[['position', 3], ['texcoord', 2]]").unwrap(),
+                                        "vertices".to_string() => Pon::FloatArray(verts),
+                                        "indices".to_string() => Pon::IntegerArray(indices)
                                     })
                                 }
                                 )));

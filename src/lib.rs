@@ -18,12 +18,12 @@ mod legacy_directx_x_test;
 use legacy_directx_x::*;
 
 use pyramid::interface::*;
-use pyramid::propnode::*;
+use pyramid::pon::*;
 use pyramid::document::*;
 
 pub struct LegacyDirectXXSubSystem {
     root_path: PathBuf,
-    x_files: HashMap<PropNode, DXNode>
+    x_files: HashMap<Pon, DXNode>
 }
 
 impl LegacyDirectXXSubSystem {
@@ -35,8 +35,8 @@ impl LegacyDirectXXSubSystem {
     }
 }
 
-fn dxnode_from_propnode(root_path: &PathBuf, propnode: &PropNode) -> Result<DXNode, PropTranslateErr> {
-    let filename = try!(propnode.as_string());
+fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PropTranslateErr> {
+    let filename = try!(pon.as_string());
     let path_buff = root_path.join(Path::new(filename));
     let path = path_buff.as_path();
     println!("Loading .x file {:?}", path);
@@ -70,7 +70,7 @@ impl ISubSystem for LegacyDirectXXSubSystem {
             let dx = match &dx {
                 &Some(ref dx) => dx,
                 &None => {
-                    let dx = dxnode_from_propnode(&self.root_path, &pn).unwrap();
+                    let dx = dxnode_from_pon(&self.root_path, &pn).unwrap();
                     self.x_files.insert(pn.clone(), dx);
                     self.x_files.get(&pn).unwrap()
                 }

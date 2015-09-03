@@ -2,7 +2,7 @@ peg_file! legacy_directx_x_parse("legacy_directx_x.rustpeg");
 use legacy_directx_x::*;
 
 use pyramid::document::*;
-use pyramid::propnode::*;
+use pyramid::pon::*;
 use pyramid::interface::*;
 use pyramid::system::*;
 
@@ -44,15 +44,15 @@ fn test_load_file_1() {
     dxnode.append_to_system(&mut system, &ent);
     let mesh_ent = system.get_entity_by_name("polySurface1").unwrap();
     let mesh = system.get_property_value(&mesh_ent, "mesh");
-    assert_eq!(mesh, Ok(PropNode::PropTransform(Box::new(
+    assert_eq!(mesh, Ok(Pon::PropTransform(Box::new(
         PropTransform {
             name: "static_mesh".to_string(),
-            arg: PropNode::Object(hashmap!{
-                "vertices".to_string() => PropNode::FloatArray(vec![
+            arg: Pon::Object(hashmap!{
+                "vertices".to_string() => Pon::FloatArray(vec![
                         -4.382881, 6.532472, 1.292141, 0.899474, -0.274396,
                         -3.229391, 6.532472, 0.391409, 0.678246, -0.182760
                     ]),
-                "indices".to_string() => PropNode::IntegerArray(vec![
+                "indices".to_string() => Pon::IntegerArray(vec![
                         327,326,325,
                         331,330,329,
                         331,329,328
@@ -111,15 +111,15 @@ fn test_load_file_2() {
     dxnode.append_to_system(&mut system, &ent);
     let mesh_ent = system.get_entity_by_name("polySurface1").unwrap();
     let mesh = system.get_property_value(&mesh_ent, "mesh");
-    assert_eq!(mesh, Ok(PropNode::PropTransform(Box::new(
+    assert_eq!(mesh, Ok(Pon::PropTransform(Box::new(
         PropTransform {
             name: "static_mesh".to_string(),
-            arg: PropNode::Object(hashmap!{
-                "vertices".to_string() => PropNode::FloatArray(vec![
+            arg: Pon::Object(hashmap!{
+                "vertices".to_string() => Pon::FloatArray(vec![
                     0.856444, 0.000000, -1.511363, 0.706463, -0.177258,
                     0.856444, 0.000000, -1.511363, 0.706463, -0.177258
                     ]),
-                "indices".to_string() => PropNode::IntegerArray(vec![
+                "indices".to_string() => Pon::IntegerArray(vec![
                     3,2,1,
                     3,1,0,
                     67,66,65,
