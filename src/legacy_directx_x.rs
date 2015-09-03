@@ -81,6 +81,27 @@ impl DXNode {
             Err("Not a mesh".to_string())
         }
     }
+    fn frame_transform_to_pon(&self) -> Result<Pon, String> {
+        if let &DXNode::Obj { children: ref transform_children, .. } = self {
+            match &transform_children[0] {
+                &DXNode::Values(ref vals) => {
+                    Ok(Pon::PropTransform(Box::new(PropTransform {
+                        name: "mul".to_string(),
+                        arg: Pon::Array(vec![
+                            Pon::DependencyReference(NamedPropRef { entity_name: "parent".to_string(), property_key: "transform".to_string() }),
+                            Pon::PropTransform(Box::new(PropTransform {
+                                name: "matrix".to_string(),
+                                arg: Pon::FloatArray(vals[0][0].clone())
+                                }))
+                            ])
+                        })))
+                },
+                _ => Err("Malformed frame transform".to_string())
+            }
+        } else {
+            Err("Not a frame transform".to_string())
+        }
+    }
     pub fn append_to_system(&self, system: &mut ISystem, parent: &EntityId) {
         match self {
             &DXNode::Obj { ref name, ref arg, ref children } => {
@@ -97,22 +118,8 @@ impl DXNode {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
                         });
-                        if let Some(&DXNode::Obj { children: ref transform_children, .. }) = transform_node {
-                            match &transform_children[0] {
-                                &DXNode::Values(ref vals) => {
-                                    system.set_property(&ent, "transform".to_string(), Pon::PropTransform(Box::new(PropTransform {
-                                        name: "mul".to_string(),
-                                        arg: Pon::Array(vec![
-                                            Pon::DependencyReference(NamedPropRef { entity_name: "parent".to_string(), property_key: "transform".to_string() }),
-                                            Pon::PropTransform(Box::new(PropTransform {
-                                                name: "matrix".to_string(),
-                                                arg: Pon::FloatArray(vals[0][0].clone())
-                                                }))
-                                            ])
-                                        })));
-                                },
-                                _ => {}
-                            }
+                        if let Some(transform_node) = transform_node {
+                            system.set_property(&ent, "transform".to_string(), transform_node.frame_transform_to_pon().unwrap());
                         } else {
                             system.set_property(&ent, "transform".to_string(), pon_parser::parse("@parent.transform").unwrap());
                         }
