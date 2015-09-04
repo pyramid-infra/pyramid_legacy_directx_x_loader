@@ -1,7 +1,6 @@
 // DirectX .x is an old legacy model format. Not recommended for any use, only reason it's
 // here is because a lot of the old DML files were in .x format
 
-use pyramid::pon_parser as pon_parser;
 use pyramid::document::*;
 use pyramid::pon::*;
 use pyramid::interface::*;
@@ -71,7 +70,7 @@ impl DXNode {
                 TypedPon {
                     type_name: "static_mesh".to_string(),
                     data: Pon::Object(hashmap!{
-                        "layout".to_string() => pon_parser::parse("[['position', 3], ['texcoord', 2]]").unwrap(),
+                        "layout".to_string() => Pon::from_string("[['position', 3], ['texcoord', 2]]").unwrap(),
                         "vertices".to_string() => Pon::FloatArray(verts),
                         "indices".to_string() => Pon::IntegerArray(indices)
                     })
@@ -113,7 +112,7 @@ impl DXNode {
                     },
                     "Frame" => {
                         let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
-                        system.set_property(&ent, "diffuse".to_string(), pon_parser::parse("@parent.diffuse").unwrap());
+                        system.set_property(&ent, "diffuse".to_string(), Pon::from_string("@parent.diffuse").unwrap());
                         let transform_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
@@ -121,7 +120,7 @@ impl DXNode {
                         if let Some(transform_node) = transform_node {
                             system.set_property(&ent, "transform".to_string(), transform_node.frame_transform_to_pon().unwrap());
                         } else {
-                            system.set_property(&ent, "transform".to_string(), pon_parser::parse("@parent.transform").unwrap());
+                            system.set_property(&ent, "transform".to_string(), Pon::from_string("@parent.transform").unwrap());
                         }
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
