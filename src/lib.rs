@@ -36,7 +36,7 @@ impl LegacyDirectXXSubSystem {
 }
 
 fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PonTranslateErr> {
-    let filename = try!(pon.as_string());
+    let filename = try!(pon.translate::<&str>());
     let path_buff = root_path.join(Path::new(filename));
     let path = path_buff.as_path();
     println!("Loading .x file {:?}", path);
