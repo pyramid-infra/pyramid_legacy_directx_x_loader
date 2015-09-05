@@ -87,7 +87,7 @@ impl DXNode {
                     Ok(Pon::TypedPon(Box::new(TypedPon {
                         type_name: "mul".to_string(),
                         data: Pon::Array(vec![
-                            Pon::DependencyReference(NamedPropRef { entity_name: "parent".to_string(), property_key: "transform".to_string() }),
+                            Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "transform")),
                             Pon::TypedPon(Box::new(TypedPon {
                                 type_name: "matrix".to_string(),
                                 data: Pon::FloatArray(vals[0][0].clone())
@@ -149,28 +149,28 @@ impl DXNode {
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "rotate_x")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_x")),
                         "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][0]]) ).collect())
                     ))
                 })),
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "rotate_y")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_y")),
                         "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][1]]) ).collect())
                     ))
                 })),
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "rotate_z")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_z")),
                         "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][2]]) ).collect())
                     ))
                 })),
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "rotate_w")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_w")),
                         "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][3]]) ).collect())
                     ))
                 })),
@@ -178,21 +178,21 @@ impl DXNode {
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "scale_x")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "scale_x")),
                         "keys" => Pon::Array(scale.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][0]]) ).collect())
                     ))
                 })),
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "scale_y")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "scale_y")),
                         "keys" => Pon::Array(scale.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][1]]) ).collect())
                     ))
                 })),
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "scale_z")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "scale_z")),
                         "keys" => Pon::Array(scale.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][2]]) ).collect())
                     ))
                 })),
@@ -200,21 +200,21 @@ impl DXNode {
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "translate_x")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "translate_x")),
                         "keys" => Pon::Array(translate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][0]]) ).collect())
                     ))
                 })),
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "translate_y")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "translate_y")),
                         "keys" => Pon::Array(translate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][1]]) ).collect())
                     ))
                 })),
                 Pon::TypedPon(Box::new(TypedPon {
                     type_name: "key_framed".to_string(),
                     data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(&format!("this:{}", target_entity), "translate_z")),
+                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "translate_z")),
                         "keys" => Pon::Array(translate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][2]]) ).collect())
                     ))
                 })),
