@@ -101,6 +101,38 @@ impl DXNode {
             Err("Not a frame transform".to_string())
         }
     }
+    fn anim_from_values(target_entity: &str, property: &str, values: &Vec<Vec<Vec<f32>>>, index: usize) -> Pon {
+        let keys: Vec<Vec<f32>> = values.iter().map(|v| vec![v[0][0], v[2][index]] ).collect();
+        // Commented out because it hasn't been tested anywhere yet
+        // // Check if all the keys are the same, in which case we can just return a fixed value instead
+        // let mut all_same = true;
+        // for i in 1..keys.len() {
+        //     if keys[i][1] != keys[0][1] {
+        //         all_same = false;
+        //         break;
+        //     }
+        // }
+        // if all_same {
+        //     println!("ALL SAME");
+        //     return Pon::TypedPon(Box::new(TypedPon {
+        //         type_name: "fixed_value".to_string(),
+        //         data: Pon::Object(hashmap!(
+        //             "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), property)),
+        //             "value" => Pon::Float(keys[0][1])
+        //         ))
+        //     }))
+        // }
+        Pon::TypedPon(Box::new(TypedPon {
+            type_name: "key_framed".to_string(),
+            data: Pon::Object(hashmap!(
+                "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), property)),
+                "loop" => Pon::String("forever".to_string()),
+                "duration" => Pon::Float(keys.last().unwrap()[0]),
+                "keys" => Pon::Array(keys.into_iter().map(|v| Pon::FloatArray(v) ).collect())
+            ))
+        }))
+    }
+    // anim_from_values(target_entity, "rotate_x", rotate, 0)
     fn animation_to_pon(&self) -> Result<Pon, String> {
         let children = match self {
             &DXNode::Obj { ref children, .. } => children,
@@ -146,78 +178,18 @@ impl DXNode {
         Ok(Pon::TypedPon(Box::new(TypedPon {
             type_name: "animation_set".to_string(),
             data: Pon::Array(vec![
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_x")),
-                        "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][0]]) ).collect())
-                    ))
-                })),
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_y")),
-                        "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][1]]) ).collect())
-                    ))
-                })),
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_z")),
-                        "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][2]]) ).collect())
-                    ))
-                })),
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "rotate_w")),
-                        "keys" => Pon::Array(rotate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][3]]) ).collect())
-                    ))
-                })),
+                DXNode::anim_from_values(target_entity, "rotate_x", &rotate, 0),
+                DXNode::anim_from_values(target_entity, "rotate_y", &rotate, 1),
+                DXNode::anim_from_values(target_entity, "rotate_z", &rotate, 2),
+                DXNode::anim_from_values(target_entity, "rotate_w", &rotate, 3),
 
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "scale_x")),
-                        "keys" => Pon::Array(scale.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][0]]) ).collect())
-                    ))
-                })),
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "scale_y")),
-                        "keys" => Pon::Array(scale.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][1]]) ).collect())
-                    ))
-                })),
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "scale_z")),
-                        "keys" => Pon::Array(scale.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][2]]) ).collect())
-                    ))
-                })),
+                DXNode::anim_from_values(target_entity, "scale_x", &scale, 0),
+                DXNode::anim_from_values(target_entity, "scale_y", &scale, 1),
+                DXNode::anim_from_values(target_entity, "scale_z", &scale, 2),
 
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "translate_x")),
-                        "keys" => Pon::Array(translate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][0]]) ).collect())
-                    ))
-                })),
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "translate_y")),
-                        "keys" => Pon::Array(translate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][1]]) ).collect())
-                    ))
-                })),
-                Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "key_framed".to_string(),
-                    data: Pon::Object(hashmap!(
-                        "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), "translate_z")),
-                        "keys" => Pon::Array(translate.iter().map(|v| Pon::FloatArray(vec![v[0][0], v[2][2]]) ).collect())
-                    ))
-                })),
+                DXNode::anim_from_values(target_entity, "translate_x", &translate, 0),
+                DXNode::anim_from_values(target_entity, "translate_y", &translate, 1),
+                DXNode::anim_from_values(target_entity, "translate_z", &translate, 2)
             ])
         })))
     }
