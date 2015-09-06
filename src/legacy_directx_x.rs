@@ -85,15 +85,9 @@ impl DXNode {
             match &transform_children[0] {
                 &DXNode::Values(ref vals) => {
                     Ok(Pon::TypedPon(Box::new(TypedPon {
-                        type_name: "mul".to_string(),
-                        data: Pon::Array(vec![
-                            Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "transform")),
-                            Pon::TypedPon(Box::new(TypedPon {
                                 type_name: "matrix".to_string(),
                                 data: Pon::FloatArray(vals[0][0].clone())
-                                }))
-                            ])
-                        })))
+                                })))
                 },
                 _ => Err("Malformed frame transform".to_string())
             }
@@ -154,7 +148,7 @@ impl DXNode {
             values
         };
         let scale = {
-            let children = match &children[1] {
+            let children = match &children[2] {
                 &DXNode::Obj { ref children, .. } => children,
                 _ => unreachable!()
             };
@@ -165,7 +159,7 @@ impl DXNode {
             values
         };
         let translate = {
-            let children = match &children[1] {
+            let children = match &children[3] {
                 &DXNode::Obj { ref children, .. } => children,
                 _ => unreachable!()
             };
@@ -178,10 +172,10 @@ impl DXNode {
         Ok(Pon::TypedPon(Box::new(TypedPon {
             type_name: "animation_set".to_string(),
             data: Pon::Array(vec![
-                DXNode::anim_from_values(target_entity, "rotate_x", &rotate, 0),
-                DXNode::anim_from_values(target_entity, "rotate_y", &rotate, 1),
-                DXNode::anim_from_values(target_entity, "rotate_z", &rotate, 2),
-                DXNode::anim_from_values(target_entity, "rotate_w", &rotate, 3),
+                DXNode::anim_from_values(target_entity, "rotate_w", &rotate, 0),
+                DXNode::anim_from_values(target_entity, "rotate_x", &rotate, 1),
+                DXNode::anim_from_values(target_entity, "rotate_y", &rotate, 2),
+                DXNode::anim_from_values(target_entity, "rotate_z", &rotate, 3),
 
                 DXNode::anim_from_values(target_entity, "scale_x", &scale, 0),
                 DXNode::anim_from_values(target_entity, "scale_y", &scale, 1),
@@ -215,22 +209,43 @@ impl DXNode {
                     },
                     "Frame" => {
                         let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
-                        system.set_property(&ent, "diffuse".to_string(), Pon::from_string("@parent.diffuse").unwrap());
+                        system.set_property(&ent, "diffuse", Pon::from_string("@parent.diffuse").unwrap());
                         let transform_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
                         });
+                        system.set_property(&ent, "translate_x", Pon::Float(0.0));
+                        system.set_property(&ent, "translate_y", Pon::Float(0.0));
+                        system.set_property(&ent, "translate_z", Pon::Float(0.0));
+                        system.set_property(&ent, "rotate_x", Pon::Float(0.0));
+                        system.set_property(&ent, "rotate_y", Pon::Float(0.0));
+                        system.set_property(&ent, "rotate_z", Pon::Float(0.0));
+                        system.set_property(&ent, "rotate_w", Pon::Float(1.0));
+                        system.set_property(&ent, "scale_x", Pon::Float(1.0));
+                        system.set_property(&ent, "scale_y", Pon::Float(1.0));
+                        system.set_property(&ent, "scale_z", Pon::Float(1.0));
+                        let mut transforms = vec![];
+
+
+                        transforms.push(Pon::from_string("@parent.transform").unwrap());
+
                         if let Some(transform_node) = transform_node {
-                            system.set_property(&ent, "transform".to_string(), transform_node.frame_transform_to_pon().unwrap());
-                        } else {
-                            system.set_property(&ent, "transform".to_string(), Pon::from_string("@parent.transform").unwrap());
+                            transforms.push(transform_node.frame_transform_to_pon().unwrap());
                         }
+                        transforms.push(Pon::from_string("translate { x: @this.translate_x, y: @this.translate_y, z: @this.translate_z }").unwrap());
+                        transforms.push(Pon::from_string("rotate_quaternion { x: @this.rotate_x, y: @this.rotate_y, z: @this.rotate_z, w: @this.rotate_w }").unwrap());
+                        transforms.push(Pon::from_string("scale { x: @this.scale_x, y: @this.scale_y, z: @this.scale_z }").unwrap());
+
+                        system.set_property(&ent, "transform", Pon::TypedPon(Box::new(TypedPon {
+                            type_name: "mul".to_string(),
+                            data: Pon::Array(transforms)
+                        })));
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
                             _ => false
                         });
                         if let Some(mesh) = mesh_node {
-                            system.set_property(&ent, "mesh".to_string(), match mesh.mesh_to_pon() {
+                            system.set_property(&ent, "mesh", match mesh.mesh_to_pon() {
                                 Ok(mesh) => mesh,
                                 Err(err) => panic!("Failed to parse mesh for {:?}: {}", arg, err)
                             });
@@ -240,7 +255,7 @@ impl DXNode {
                         }
                     },
                     "AnimationSet" => {
-                        system.set_property(parent, format!("animation_{}", arg.clone().unwrap().to_string()), self.animation_set_to_pon().unwrap());
+                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.animation_set_to_pon().unwrap());
                     },
                     _ => {}
                 }
