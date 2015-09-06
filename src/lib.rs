@@ -75,7 +75,7 @@ impl ISubSystem for LegacyDirectXXSubSystem {
                     self.x_files.get(&pn).unwrap()
                 }
             };
-            dx.append_to_system(system, &pr.entity_id);
+            dx.append_to_system(system, &pr.entity_id, 24.0);
         }
     }
 }

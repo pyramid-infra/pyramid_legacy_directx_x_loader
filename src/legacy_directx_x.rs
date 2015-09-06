@@ -95,8 +95,8 @@ impl DXNode {
             Err("Not a frame transform".to_string())
         }
     }
-    fn anim_from_values(target_entity: &str, property: &str, values: &Vec<Vec<Vec<f32>>>, index: usize) -> Pon {
-        let keys: Vec<Vec<f32>> = values.iter().map(|v| vec![v[0][0], v[2][index]] ).collect();
+    fn anim_from_values(target_entity: &str, anim_ticks_per_second: f32, property: &str, values: &Vec<Vec<Vec<f32>>>, index: usize) -> Pon {
+        let keys: Vec<Vec<f32>> = values.iter().map(|v| vec![v[0][0] / anim_ticks_per_second, v[2][index]] ).collect();
         // Commented out because it hasn't been tested anywhere yet
         // // Check if all the keys are the same, in which case we can just return a fixed value instead
         // let mut all_same = true;
@@ -127,7 +127,7 @@ impl DXNode {
         }))
     }
     // anim_from_values(target_entity, "rotate_x", rotate, 0)
-    fn animation_to_pon(&self) -> Result<Pon, String> {
+    fn animation_to_pon(&self, anim_ticks_per_second: f32) -> Result<Pon, String> {
         let children = match self {
             &DXNode::Obj { ref children, .. } => children,
             _ => unreachable!()
@@ -172,39 +172,39 @@ impl DXNode {
         Ok(Pon::TypedPon(Box::new(TypedPon {
             type_name: "animation_set".to_string(),
             data: Pon::Array(vec![
-                DXNode::anim_from_values(target_entity, "rotate_w", &rotate, 0),
-                DXNode::anim_from_values(target_entity, "rotate_x", &rotate, 1),
-                DXNode::anim_from_values(target_entity, "rotate_y", &rotate, 2),
-                DXNode::anim_from_values(target_entity, "rotate_z", &rotate, 3),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_w", &rotate, 0),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_x", &rotate, 1),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_y", &rotate, 2),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_z", &rotate, 3),
 
-                DXNode::anim_from_values(target_entity, "scale_x", &scale, 0),
-                DXNode::anim_from_values(target_entity, "scale_y", &scale, 1),
-                DXNode::anim_from_values(target_entity, "scale_z", &scale, 2),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "scale_x", &scale, 0),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "scale_y", &scale, 1),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "scale_z", &scale, 2),
 
-                DXNode::anim_from_values(target_entity, "translate_x", &translate, 0),
-                DXNode::anim_from_values(target_entity, "translate_y", &translate, 1),
-                DXNode::anim_from_values(target_entity, "translate_z", &translate, 2)
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "translate_x", &translate, 0),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "translate_y", &translate, 1),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "translate_z", &translate, 2)
             ])
         })))
     }
-    fn animation_set_to_pon(&self) -> Result<Pon, String> {
+    fn animation_set_to_pon(&self, anim_ticks_per_second: f32) -> Result<Pon, String> {
         match self {
             &DXNode::Obj { ref name, ref arg, ref children } => {
                 Ok(Pon::TypedPon(Box::new(TypedPon {
                     type_name: "animation_set".to_string(),
-                    data: Pon::Array(children.iter().map(|c| c.animation_to_pon().unwrap()).collect())
+                    data: Pon::Array(children.iter().map(|c| c.animation_to_pon(anim_ticks_per_second).unwrap()).collect())
                 })))
             },
             _ => panic!("Unexpected surprise")
         }
     }
-    pub fn append_to_system(&self, system: &mut ISystem, parent: &EntityId) {
+    pub fn append_to_system(&self, system: &mut ISystem, parent: &EntityId, mut anim_ticks_per_second: f32) {
         match self {
             &DXNode::Obj { ref name, ref arg, ref children } => {
                 match name.as_str() {
                     "Root" => {
                         for n in children {
-                            n.append_to_system(system, parent);
+                            n.append_to_system(system, parent, anim_ticks_per_second);
                         }
                     },
                     "Frame" => {
@@ -251,11 +251,17 @@ impl DXNode {
                             });
                         }
                         for n in children {
-                            n.append_to_system(system, &ent);
+                            n.append_to_system(system, &ent, anim_ticks_per_second);
                         }
                     },
                     "AnimationSet" => {
-                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.animation_set_to_pon().unwrap());
+                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.animation_set_to_pon(anim_ticks_per_second).unwrap());
+                    },
+                    "AnimTicksPerSecond" => {
+                        anim_ticks_per_second = match children[0] {
+                            DXNode::Value(v) => v,
+                            _ => panic!("Didn't find anim ticks per second child")
+                        };
                     },
                     _ => {}
                 }
