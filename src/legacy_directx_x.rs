@@ -97,25 +97,24 @@ impl DXNode {
     }
     fn anim_from_values(target_entity: &str, anim_ticks_per_second: f32, property: &str, values: &Vec<Vec<Vec<f32>>>, index: usize) -> Pon {
         let keys: Vec<Vec<f32>> = values.iter().map(|v| vec![v[0][0] / anim_ticks_per_second, v[2][index]] ).collect();
-        // Commented out because it hasn't been tested anywhere yet
-        // // Check if all the keys are the same, in which case we can just return a fixed value instead
-        // let mut all_same = true;
-        // for i in 1..keys.len() {
-        //     if keys[i][1] != keys[0][1] {
-        //         all_same = false;
-        //         break;
-        //     }
-        // }
-        // if all_same {
-        //     println!("ALL SAME");
-        //     return Pon::TypedPon(Box::new(TypedPon {
-        //         type_name: "fixed_value".to_string(),
-        //         data: Pon::Object(hashmap!(
-        //             "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), property)),
-        //             "value" => Pon::Float(keys[0][1])
-        //         ))
-        //     }))
-        // }
+        // Check if all the keys are the same, in which case we can just return a fixed value instead
+        let mut all_same = true;
+        for i in 1..keys.len() {
+            if keys[i][1] != keys[0][1] {
+                all_same = false;
+                break;
+            }
+        }
+        if all_same {
+            println!("ALL SAME");
+            return Pon::TypedPon(Box::new(TypedPon {
+                type_name: "fixed_value".to_string(),
+                data: Pon::Object(hashmap!(
+                    "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), property)),
+                    "value" => Pon::Float(keys[0][1])
+                ))
+            }))
+        }
         Pon::TypedPon(Box::new(TypedPon {
             type_name: "key_framed".to_string(),
             data: Pon::Object(hashmap!(
