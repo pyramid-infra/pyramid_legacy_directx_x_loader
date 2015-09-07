@@ -62,6 +62,13 @@ impl ISubSystem for LegacyDirectXXSubSystem {
     fn on_property_value_change(&mut self, system: &mut ISystem, prop_refs: &Vec<PropRef>) {
         for pr in prop_refs.iter().filter(|pr| pr.property_key == "directx_x") {
             let pn = system.get_property_value(&pr.entity_id, &pr.property_key.as_str()).unwrap().clone();
+            match system.get_property_value(&pr.entity_id, "directx_x_loaded") {
+                Ok(_) => {
+                    println!("WARNING: Trying to change .x file on entity that's already been assigned a .x file once {:?}, skipping.", pr);
+                    continue;
+                },
+                Err(_) => {}
+            }
 
             let dx = match self.x_files.get(&pn) {
                 Some(dx) => Some(dx.clone()),
@@ -76,6 +83,7 @@ impl ISubSystem for LegacyDirectXXSubSystem {
                 }
             };
             dx.append_to_system(system, &pr.entity_id, 24.0);
+            system.set_property(&pr.entity_id, "directx_x_loaded", pn.clone());
         }
     }
 }
