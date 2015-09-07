@@ -61,7 +61,7 @@ fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PonTranslat
 impl ISubSystem for LegacyDirectXXSubSystem {
     fn on_property_value_change(&mut self, system: &mut ISystem, prop_refs: &Vec<PropRef>) {
         for pr in prop_refs.iter().filter(|pr| pr.property_key == "directx_x") {
-            let pn = system.get_property_value(&pr.entity_id, &pr.property_key.as_str()).unwrap();
+            let pn = system.get_property_value(&pr.entity_id, &pr.property_key.as_str()).unwrap().clone();
 
             let dx = match self.x_files.get(&pn) {
                 Some(dx) => Some(dx.clone()),
