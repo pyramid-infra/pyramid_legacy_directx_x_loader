@@ -239,6 +239,10 @@ impl DXNode {
                             type_name: "mul".to_string(),
                             data: Pon::Array(transforms)
                         }))).unwrap();
+
+                        system.set_property(&ent, "shader", Pon::from_string("@parent.shader").unwrap()).unwrap();
+                        system.set_property(&ent, "uniforms", Pon::from_string("@parent.uniforms").unwrap()).unwrap();
+
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
                             _ => false
