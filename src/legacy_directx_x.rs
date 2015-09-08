@@ -208,21 +208,21 @@ impl DXNode {
                     },
                     "Frame" => {
                         let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
-                        system.set_property(&ent, "diffuse", Pon::from_string("@parent.diffuse").unwrap());
+                        system.set_property(&ent, "diffuse", Pon::from_string("@parent.diffuse").unwrap()).unwrap();
                         let transform_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
                         });
-                        system.set_property(&ent, "translate_x", Pon::Float(0.0));
-                        system.set_property(&ent, "translate_y", Pon::Float(0.0));
-                        system.set_property(&ent, "translate_z", Pon::Float(0.0));
-                        system.set_property(&ent, "rotate_x", Pon::Float(0.0));
-                        system.set_property(&ent, "rotate_y", Pon::Float(0.0));
-                        system.set_property(&ent, "rotate_z", Pon::Float(0.0));
-                        system.set_property(&ent, "rotate_w", Pon::Float(1.0));
-                        system.set_property(&ent, "scale_x", Pon::Float(1.0));
-                        system.set_property(&ent, "scale_y", Pon::Float(1.0));
-                        system.set_property(&ent, "scale_z", Pon::Float(1.0));
+                        system.set_property(&ent, "translate_x", Pon::Float(0.0)).unwrap();
+                        system.set_property(&ent, "translate_y", Pon::Float(0.0)).unwrap();
+                        system.set_property(&ent, "translate_z", Pon::Float(0.0)).unwrap();
+                        system.set_property(&ent, "rotate_x", Pon::Float(0.0)).unwrap();
+                        system.set_property(&ent, "rotate_y", Pon::Float(0.0)).unwrap();
+                        system.set_property(&ent, "rotate_z", Pon::Float(0.0)).unwrap();
+                        system.set_property(&ent, "rotate_w", Pon::Float(1.0)).unwrap();
+                        system.set_property(&ent, "scale_x", Pon::Float(1.0)).unwrap();
+                        system.set_property(&ent, "scale_y", Pon::Float(1.0)).unwrap();
+                        system.set_property(&ent, "scale_z", Pon::Float(1.0)).unwrap();
                         let mut transforms = vec![];
 
 
@@ -238,7 +238,7 @@ impl DXNode {
                         system.set_property(&ent, "transform", Pon::TypedPon(Box::new(TypedPon {
                             type_name: "mul".to_string(),
                             data: Pon::Array(transforms)
-                        })));
+                        }))).unwrap();
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
                             _ => false
@@ -247,14 +247,14 @@ impl DXNode {
                             system.set_property(&ent, "mesh", match mesh.mesh_to_pon() {
                                 Ok(mesh) => mesh,
                                 Err(err) => panic!("Failed to parse mesh for {:?}: {}", arg, err)
-                            });
+                            }).unwrap();
                         }
                         for n in children {
                             n.append_to_system(system, &ent, anim_ticks_per_second);
                         }
                     },
                     "AnimationSet" => {
-                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.animation_set_to_pon(anim_ticks_per_second).unwrap());
+                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.animation_set_to_pon(anim_ticks_per_second).unwrap()).unwrap();
                     },
                     "AnimTicksPerSecond" => {
                         anim_ticks_per_second = match children[0] {

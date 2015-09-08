@@ -19,7 +19,6 @@ use legacy_directx_x::*;
 
 use pyramid::interface::*;
 use pyramid::pon::*;
-use pyramid::document::*;
 
 pub struct LegacyDirectXXSubSystem {
     root_path: PathBuf,
@@ -83,7 +82,7 @@ impl ISubSystem for LegacyDirectXXSubSystem {
                 }
             };
             dx.append_to_system(system, &pr.entity_id, 24.0);
-            system.set_property(&pr.entity_id, "directx_x_loaded", pn.clone());
+            system.set_property(&pr.entity_id, "directx_x_loaded", pn.clone()).unwrap();
         }
     }
 }
