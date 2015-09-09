@@ -1,4 +1,4 @@
-use legacy_directx_x::*;
+use legacy_dotx::*;
 
 #[pub]
 file -> DXNode

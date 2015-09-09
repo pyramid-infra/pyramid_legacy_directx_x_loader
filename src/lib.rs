@@ -1,6 +1,6 @@
 #![feature(plugin, convert)]
 #![plugin(peg_syntax_ext)]
-peg_file! legacy_directx_x_parse("legacy_directx_x.rustpeg");
+peg_file! legacy_dotx_parse("legacy_dotx.rustpeg");
 
 #[macro_use]
 extern crate pyramid;
@@ -12,22 +12,22 @@ use std::fs::File;
 use std::error::Error;
 use std::io::prelude::*;
 
-mod legacy_directx_x;
-mod legacy_directx_x_test;
+mod legacy_dotx;
+mod legacy_dotx_test;
 
-use legacy_directx_x::*;
+use legacy_dotx::*;
 
 use pyramid::interface::*;
 use pyramid::pon::*;
 
-pub struct LegacyDirectXXSubSystem {
+pub struct LegacyDotXSubSystem {
     root_path: PathBuf,
     x_files: HashMap<Pon, DXNode>
 }
 
-impl LegacyDirectXXSubSystem {
-    pub fn new(root_path: PathBuf) -> LegacyDirectXXSubSystem {
-        LegacyDirectXXSubSystem {
+impl LegacyDotXSubSystem {
+    pub fn new(root_path: PathBuf) -> LegacyDotXSubSystem {
+        LegacyDotXSubSystem {
             root_path: root_path,
             x_files: HashMap::new()
         }
@@ -46,7 +46,7 @@ fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PonTranslat
     let mut content = String::new();
     return match file.read_to_string(&mut content) {
         Ok(_) => {
-            let dx = match legacy_directx_x_parse::file(&content.as_str()) {
+            let dx = match legacy_dotx_parse::file(&content.as_str()) {
                 Ok(mesh) => mesh,
                 Err(err) => panic!("Failed to load .x {:?} with error: {:?}", path, err)
             };
@@ -57,7 +57,7 @@ fn dxnode_from_pon(root_path: &PathBuf, pon: &Pon) -> Result<DXNode, PonTranslat
     }
 }
 
-impl ISubSystem for LegacyDirectXXSubSystem {
+impl ISubSystem for LegacyDotXSubSystem {
     fn on_property_value_change(&mut self, system: &mut ISystem, prop_refs: &Vec<PropRef>) {
         for pr in prop_refs.iter().filter(|pr| pr.property_key == "directx_x") {
             let pn = system.get_property_value(&pr.entity_id, &pr.property_key.as_str()).unwrap().clone();

@@ -1,5 +1,5 @@
-peg_file! legacy_directx_x_parse("legacy_directx_x.rustpeg");
-use legacy_directx_x::*;
+peg_file! legacy_dotx_parse("legacy_dotx.rustpeg");
+use legacy_dotx::*;
 
 use pyramid::document::*;
 use pyramid::pon::*;
@@ -37,7 +37,7 @@ fn test_load_file_1() {
         	}
         }
     "#;
-    let dxnode = legacy_directx_x_parse::file(data).unwrap();
+    let dxnode = legacy_dotx_parse::file(data).unwrap();
 
     let mut system = System::new();
     let ent = system.append_entity(&-1, "Entity".to_string(), None).unwrap();
@@ -105,7 +105,7 @@ fn test_load_file_2() {
     	}
     }
 "#;
-    let dxnode = legacy_directx_x_parse::file(data).unwrap();
+    let dxnode = legacy_dotx_parse::file(data).unwrap();
 
     let mut system = System::new();
     let ent = system.append_entity(&-1, "Entity".to_string(), None).unwrap();
@@ -142,7 +142,7 @@ fn test_load_file_3() {
 		110;4;-0.027192,-0.792217,-0.093974;;;
 	}
 "#;
-    let parsed = legacy_directx_x_parse::file(data);
+    let parsed = legacy_dotx_parse::file(data);
     parsed.unwrap();
     //assert!(parsed.is_ok());
 }
