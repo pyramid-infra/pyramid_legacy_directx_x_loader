@@ -169,7 +169,7 @@ impl DXNode {
             values
         };
         Ok(Pon::TypedPon(Box::new(TypedPon {
-            type_name: "animation_set".to_string(),
+            type_name: "track_set".to_string(),
             data: Pon::Array(vec![
                 DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_w", &rotate, 0),
                 DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_x", &rotate, 1),
@@ -186,11 +186,11 @@ impl DXNode {
             ])
         })))
     }
-    fn animation_set_to_pon(&self, anim_ticks_per_second: f32) -> Result<Pon, String> {
+    fn track_set_to_pon(&self, anim_ticks_per_second: f32) -> Result<Pon, String> {
         match self {
             &DXNode::Obj { ref name, ref arg, ref children } => {
                 Ok(Pon::TypedPon(Box::new(TypedPon {
-                    type_name: "animation_set".to_string(),
+                    type_name: "track_set".to_string(),
                     data: Pon::Array(children.iter().map(|c| c.animation_to_pon(anim_ticks_per_second).unwrap()).collect())
                 })))
             },
@@ -259,7 +259,7 @@ impl DXNode {
                         }
                     },
                     "AnimationSet" => {
-                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.animation_set_to_pon(anim_ticks_per_second).unwrap()).unwrap();
+                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.track_set_to_pon(anim_ticks_per_second).unwrap()).unwrap();
                     },
                     "AnimTicksPerSecond" => {
                         anim_ticks_per_second = match children[0] {
