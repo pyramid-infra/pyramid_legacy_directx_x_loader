@@ -95,12 +95,12 @@ impl DXNode {
             Err("Not a frame transform".to_string())
         }
     }
-    fn anim_from_values(target_entity: &str, anim_ticks_per_second: f32, property: &str, values: &Vec<Vec<Vec<f32>>>, index: usize) -> Pon {
-        let keys: Vec<Vec<f32>> = values.iter().map(|v| vec![v[0][0] / anim_ticks_per_second, v[2][index]] ).collect();
+    fn anim_from_values(target_entity: &str, anim_ticks_per_second: f32, property: &str, values: &Vec<Vec<Vec<f32>>>, value_count: usize) -> Pon {
+        let keys: Vec<(f32, Vec<f32>)> = values.iter().map(|v| (v[0][0] / anim_ticks_per_second, v[2][0..value_count].to_vec()) ).collect();
         // Check if all the keys are the same, in which case we can just return a fixed value instead
         let mut all_same = true;
         for i in 1..keys.len() {
-            if keys[i][1] != keys[0][1] {
+            if keys[i].1 != keys[0].1 {
                 all_same = false;
                 break;
             }
@@ -111,7 +111,7 @@ impl DXNode {
                 type_name: "fixed_value".to_string(),
                 data: Pon::Object(hashmap!(
                     "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), property)),
-                    "value" => Pon::Float(keys[0][1])
+                    "value" => Pon::FloatArray(keys[0].1.clone())
                 ))
             }))
         }
@@ -120,8 +120,8 @@ impl DXNode {
             data: Pon::Object(hashmap!(
                 "property" => Pon::Reference(NamedPropRef::new(EntityPath::Search(Box::new(EntityPath::This), target_entity.to_string()), property)),
                 "loop" => Pon::String("forever".to_string()),
-                "duration" => Pon::Float(keys.last().unwrap()[0]),
-                "keys" => Pon::Array(keys.into_iter().map(|v| Pon::FloatArray(v) ).collect())
+                "duration" => Pon::Float(keys.last().unwrap().0),
+                "keys" => Pon::Array(keys.into_iter().map(|v| Pon::Array(vec![Pon::Float(v.0), Pon::FloatArray(v.1)]) ).collect())
             ))
         }))
     }
@@ -171,18 +171,9 @@ impl DXNode {
         Ok(Pon::TypedPon(Box::new(TypedPon {
             type_name: "track_set".to_string(),
             data: Pon::Array(vec![
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_w", &rotate, 0),
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_x", &rotate, 1),
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_y", &rotate, 2),
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate_z", &rotate, 3),
-
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "scale_x", &scale, 0),
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "scale_y", &scale, 1),
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "scale_z", &scale, 2),
-
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "translate_x", &translate, 0),
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "translate_y", &translate, 1),
-                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "translate_z", &translate, 2)
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "rotate", &rotate, 4),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "scale", &scale, 3),
+                DXNode::anim_from_values(target_entity, anim_ticks_per_second, "translate", &translate, 3),
             ])
         })))
     }
@@ -213,27 +204,19 @@ impl DXNode {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
                         });
-                        system.set_property(&ent, "translate_x", Pon::Float(0.0)).unwrap();
-                        system.set_property(&ent, "translate_y", Pon::Float(0.0)).unwrap();
-                        system.set_property(&ent, "translate_z", Pon::Float(0.0)).unwrap();
-                        system.set_property(&ent, "rotate_x", Pon::Float(0.0)).unwrap();
-                        system.set_property(&ent, "rotate_y", Pon::Float(0.0)).unwrap();
-                        system.set_property(&ent, "rotate_z", Pon::Float(0.0)).unwrap();
-                        system.set_property(&ent, "rotate_w", Pon::Float(1.0)).unwrap();
-                        system.set_property(&ent, "scale_x", Pon::Float(1.0)).unwrap();
-                        system.set_property(&ent, "scale_y", Pon::Float(1.0)).unwrap();
-                        system.set_property(&ent, "scale_z", Pon::Float(1.0)).unwrap();
+                        system.set_property(&ent, "translate", Pon::from_string("{ x: 0.0, y: 0.0, z: 0.0 }").unwrap()).unwrap();
+                        system.set_property(&ent, "rotate", Pon::from_string("{ x: 0.0, y: 0.0, z: 0.0, w: 1.0 }").unwrap()).unwrap();
+                        system.set_property(&ent, "scale", Pon::from_string("{ x: 1.0, y: 1.0, z: 1.0 }").unwrap()).unwrap();
                         let mut transforms = vec![];
-
 
                         transforms.push(Pon::from_string("@parent.transform").unwrap());
 
                         if let Some(transform_node) = transform_node {
                             transforms.push(transform_node.frame_transform_to_pon().unwrap());
                         }
-                        transforms.push(Pon::from_string("translate { x: @this.translate_x, y: @this.translate_y, z: @this.translate_z }").unwrap());
-                        transforms.push(Pon::from_string("rotate_quaternion { x: @this.rotate_x, y: @this.rotate_y, z: @this.rotate_z, w: @this.rotate_w }").unwrap());
-                        transforms.push(Pon::from_string("scale { x: @this.scale_x, y: @this.scale_y, z: @this.scale_z }").unwrap());
+                        transforms.push(Pon::from_string("translate @this.translate").unwrap());
+                        transforms.push(Pon::from_string("rotate_quaternion @this.rotate").unwrap());
+                        transforms.push(Pon::from_string("scale @this.scale").unwrap());
 
                         system.set_property(&ent, "transform", Pon::TypedPon(Box::new(TypedPon {
                             type_name: "mul".to_string(),
