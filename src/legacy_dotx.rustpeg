@@ -28,10 +28,16 @@ qualifier -> DXNode
     = sep* "{" sep* name:identifier sep* "}" sep* {
       DXNode::Qualifier(name)
     }
+    / sep* ["] name:identifier sep* ["] ";" sep* {
+      DXNode::Qualifier(name)
+    }
 
 oneline_values -> DXNode
-  = num:number sep* ";" newline+ sep* {
-    DXNode::Value(num)
+  = num:number? sep* ";" newline+ sep* {
+    match num {
+      Some(num) => DXNode::Value(num),
+      None => DXNode::Empty
+    }
   }
 
 multiline_values -> DXNode
@@ -42,6 +48,9 @@ multiline_values -> DXNode
 singleline_values -> Vec<Vec<f32>>
   = space* vals:singleline_values_2+ space* {
     vals
+  }
+  / space* val:number space* {
+    vec![vec![val]]
   }
 
 singleline_values_2 -> Vec<f32>

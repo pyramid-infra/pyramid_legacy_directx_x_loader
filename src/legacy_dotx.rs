@@ -14,6 +14,7 @@ pub enum DXNode {
         children: Vec<DXNode>
     },
     Qualifier(String),
+    Empty,
     Value(f32),
     Values(Vec<Vec<Vec<f32>>>)
 }
