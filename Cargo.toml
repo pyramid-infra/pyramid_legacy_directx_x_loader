@@ -9,3 +9,6 @@ time = "*"
 
 [dependencies.pyramid]
 path = "../pyramid"
+
+[dependencies.ppromise]
+path = "../ppromise"

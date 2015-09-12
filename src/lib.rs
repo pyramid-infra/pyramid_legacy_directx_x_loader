@@ -5,6 +5,7 @@ peg_file! legacy_dotx_parse("legacy_dotx.rustpeg");
 #[macro_use]
 extern crate pyramid;
 extern crate time;
+extern crate ppromise;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -22,6 +23,7 @@ use legacy_dotx::*;
 use pyramid::interface::*;
 use pyramid::pon::*;
 use pyramid::document::*;
+use ppromise::*;
 
 use std::thread;
 use std::sync::mpsc;
@@ -29,65 +31,44 @@ use std::sync::mpsc::*;
 use std::mem;
 
 struct XFile {
-    loaded_node: Option<DXNode>,
-    pending_scene_adds: Vec<EntityId>,
-    receiver: Option<Receiver<DXNode>>
+    node: Promise<DXNode>,
+    pending_scene_adds: Vec<EntityId>
 }
 impl XFile {
-    fn new(pon: Pon, root_path: PathBuf) -> XFile {
-        let (tx, rx) = mpsc::channel();
-
-        thread::spawn(move || {
-            match dxnode_from_pon(&root_path, &pon) {
-                Ok(node) => tx.send(node),
-                Err(err) => panic!("Dotx load thread error: {:?}", err)
-            }
-        });
-
+    fn new(node: Promise<DXNode>) -> XFile {
         XFile {
-            loaded_node: None,
-            pending_scene_adds: vec![],
-            receiver: Some(rx)
+            node: node,
+            pending_scene_adds: vec![]
         }
     }
     fn update(&mut self, system: &mut ISystem) {
-        let was_received = if let &Some(ref recv) = &self.receiver {
-            match recv.try_recv() {
-                Ok(node) => {
-                    let pending_scene_adds = mem::replace(&mut self.pending_scene_adds, vec![]);
-                    for entity_id in pending_scene_adds {
-                        node.append_to_system(system, &entity_id, 24.0);
-                    }
-                    self.loaded_node = Some(node);
-                    true
-                }
-                Err(err) => false
+        if self.pending_scene_adds.len() > 0 && self.node.value().is_some() {
+            let pending_scene_adds = mem::replace(&mut self.pending_scene_adds, vec![]);
+            for entity_id in pending_scene_adds {
+                self.node.value().unwrap().append_to_system(system, &entity_id, 24.0);
             }
-        } else {
-            false
-        };
-        if was_received {
-            self.receiver = None;
         }
     }
     fn append_to_entity(&mut self, system: &mut ISystem, entity_id: &EntityId) {
-        match &self.loaded_node {
-            &Some(ref node) => node.append_to_system(system, entity_id, 24.0),
-            &None => self.pending_scene_adds.push(*entity_id)
+        match self.node.value().is_some() {
+            true => self.node.value().unwrap().append_to_system(system, entity_id, 24.0),
+            false => self.pending_scene_adds.push(*entity_id)
         }
     }
 }
 
 pub struct LegacyDotXSubSystem {
     root_path: PathBuf,
-    x_files: HashMap<Pon, XFile>
+    x_files: HashMap<Pon, XFile>,
+    async_runner: AsyncRunner
 }
 
 impl LegacyDotXSubSystem {
     pub fn new(root_path: PathBuf) -> LegacyDotXSubSystem {
         LegacyDotXSubSystem {
             root_path: root_path,
-            x_files: HashMap::new()
+            x_files: HashMap::new(),
+            async_runner: AsyncRunner::new()
         }
     }
 }
@@ -132,7 +113,9 @@ impl ISubSystem for LegacyDotXSubSystem {
                     o.into_mut().append_to_entity(system, &pr.entity_id)
                 },
                 Entry::Vacant(v) => {
-                    let xfile = XFile::new(pn.clone(), self.root_path.clone());
+                    let root_path = self.root_path.clone();
+                    let pon = pn.clone();
+                    let xfile = XFile::new(self.async_runner.exec_async(move || dxnode_from_pon(&root_path, &pon).unwrap()));
                     v.insert(xfile).append_to_entity(system, &pr.entity_id);
                 }
             }
@@ -140,6 +123,7 @@ impl ISubSystem for LegacyDotXSubSystem {
         }
     }
     fn update(&mut self, system: &mut ISystem, delta_time: time::Duration) {
+        self.async_runner.try_resolve_all();
         for (_, xfile) in self.x_files.iter_mut() {
             xfile.update(system);
         }

@@ -106,7 +106,6 @@ impl DXNode {
             }
         }
         if all_same {
-            println!("ALL SAME");
             return Pon::TypedPon(Box::new(TypedPon {
                 type_name: "fixed_value".to_string(),
                 data: Pon::Object(hashmap!(
