@@ -6,6 +6,7 @@ peg_file! legacy_dotx_parse("legacy_dotx.rustpeg");
 extern crate pyramid;
 extern crate time;
 extern crate ppromise;
+extern crate cgmath;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -68,7 +69,7 @@ impl LegacyDotXSubSystem {
         LegacyDotXSubSystem {
             root_path: root_path,
             x_files: HashMap::new(),
-            async_runner: AsyncRunner::new()
+            async_runner: AsyncRunner::new_pooled(4)
         }
     }
 }

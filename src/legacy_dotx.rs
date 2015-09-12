@@ -4,6 +4,7 @@
 use pyramid::document::*;
 use pyramid::pon::*;
 use pyramid::interface::*;
+use cgmath::*;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum DXNode {
@@ -198,33 +199,30 @@ impl DXNode {
                     },
                     "Frame" => {
                         let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
-                        system.set_property(&ent, "diffuse", Pon::from_string("@parent.diffuse").unwrap()).unwrap();
+                        system.set_property(&ent, "diffuse", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "diffuse"))).unwrap();
                         let transform_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
                         });
-                        system.set_property(&ent, "translate", Pon::from_string("{ x: 0.0, y: 0.0, z: 0.0 }").unwrap()).unwrap();
-                        system.set_property(&ent, "rotate", Pon::from_string("{ x: 0.0, y: 0.0, z: 0.0, w: 1.0 }").unwrap()).unwrap();
-                        system.set_property(&ent, "scale", Pon::from_string("{ x: 1.0, y: 1.0, z: 1.0 }").unwrap()).unwrap();
+                        system.set_property(&ent, "translate", Pon::Vector3(Vector3::new(0.0, 0.0, 0.0))).unwrap();
+                        system.set_property(&ent, "rotate", Pon::Vector4(Vector4::new(0.0, 0.0, 0.0, 1.0))).unwrap();
+                        system.set_property(&ent, "scale", Pon::Vector3(Vector3::new(1.0, 1.0, 1.0))).unwrap();
                         let mut transforms = vec![];
 
-                        transforms.push(Pon::from_string("@parent.transform").unwrap());
+                        transforms.push(Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "transform")));
 
                         if let Some(transform_node) = transform_node {
                             transforms.push(transform_node.frame_transform_to_pon().unwrap());
                         }
-                        transforms.push(Pon::from_string("translate @this.translate").unwrap());
-                        transforms.push(Pon::from_string("rotate_quaternion @this.rotate").unwrap());
-                        transforms.push(Pon::from_string("scale @this.scale").unwrap());
+                        transforms.push(Pon::new_typed_pon("translate", Pon::DependencyReference(NamedPropRef::new(EntityPath::This, "translate"))));
+                        transforms.push(Pon::new_typed_pon("rotate_quaternion", Pon::DependencyReference(NamedPropRef::new(EntityPath::This, "rotate"))));
+                        transforms.push(Pon::new_typed_pon("scale", Pon::DependencyReference(NamedPropRef::new(EntityPath::This, "scale"))));
 
-                        system.set_property(&ent, "transform", Pon::TypedPon(Box::new(TypedPon {
-                            type_name: "mul".to_string(),
-                            data: Pon::Array(transforms)
-                        }))).unwrap();
+                        system.set_property(&ent, "transform", Pon::new_typed_pon("mul", Pon::Array(transforms))).unwrap();
 
-                        system.set_property(&ent, "shader", Pon::from_string("@parent.shader").unwrap()).unwrap();
-                        system.set_property(&ent, "uniforms", Pon::from_string("@parent.uniforms").unwrap()).unwrap();
-                        system.set_property(&ent, "alpha", Pon::from_string("@parent.alpha").unwrap()).unwrap();
+                        system.set_property(&ent, "shader", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "shader"))).unwrap();
+                        system.set_property(&ent, "uniforms", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "uniforms"))).unwrap();
+                        system.set_property(&ent, "alpha", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "alpha"))).unwrap();
 
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",

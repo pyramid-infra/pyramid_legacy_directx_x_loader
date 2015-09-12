@@ -6,6 +6,7 @@ authors = ["Fredrik Noren <fredrik.jw.noren@gmail.com>"]
 [dependencies]
 peg = "0.3.0"
 time = "*"
+cgmath = "*"
 
 [dependencies.pyramid]
 path = "../pyramid"
