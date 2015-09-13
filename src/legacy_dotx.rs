@@ -189,25 +189,25 @@ impl DXNode {
             _ => panic!("Unexpected surprise")
         }
     }
-    pub fn append_to_system(&self, system: &mut ISystem, parent: &EntityId, mut anim_ticks_per_second: f32) {
+    pub fn append_to_document(&self, document: &mut Document, parent: &EntityId, mut anim_ticks_per_second: f32) {
         match self {
             &DXNode::Obj { ref name, ref arg, ref children } => {
                 match name.as_str() {
                     "Root" => {
                         for n in children {
-                            n.append_to_system(system, parent, anim_ticks_per_second);
+                            n.append_to_document(document, parent, anim_ticks_per_second);
                         }
                     },
                     "Frame" => {
-                        let ent = system.append_entity(parent, "DXFrame".to_string(), arg.clone()).unwrap();
-                        system.set_property(&ent, "diffuse", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "diffuse"))).unwrap();
+                        let ent = document.append_entity(Some(*parent), "DXFrame", arg.clone()).unwrap();
+                        document.set_property(&ent, "diffuse", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "diffuse"))).unwrap();
                         let transform_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "FrameTransformMatrix",
                             _ => false
                         });
-                        system.set_property(&ent, "translate", Pon::Vector3(Vector3::new(0.0, 0.0, 0.0))).unwrap();
-                        system.set_property(&ent, "rotate", Pon::Vector4(Vector4::new(0.0, 0.0, 0.0, 1.0))).unwrap();
-                        system.set_property(&ent, "scale", Pon::Vector3(Vector3::new(1.0, 1.0, 1.0))).unwrap();
+                        document.set_property(&ent, "translate", Pon::Vector3(Vector3::new(0.0, 0.0, 0.0))).unwrap();
+                        document.set_property(&ent, "rotate", Pon::Vector4(Vector4::new(0.0, 0.0, 0.0, 1.0))).unwrap();
+                        document.set_property(&ent, "scale", Pon::Vector3(Vector3::new(1.0, 1.0, 1.0))).unwrap();
                         let mut transforms = vec![];
 
                         transforms.push(Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "transform")));
@@ -219,28 +219,28 @@ impl DXNode {
                         transforms.push(Pon::new_typed_pon("rotate_quaternion", Pon::DependencyReference(NamedPropRef::new(EntityPath::This, "rotate"))));
                         transforms.push(Pon::new_typed_pon("scale", Pon::DependencyReference(NamedPropRef::new(EntityPath::This, "scale"))));
 
-                        system.set_property(&ent, "transform", Pon::new_typed_pon("mul", Pon::Array(transforms))).unwrap();
+                        document.set_property(&ent, "transform", Pon::new_typed_pon("mul", Pon::Array(transforms))).unwrap();
 
-                        system.set_property(&ent, "shader", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "shader"))).unwrap();
-                        system.set_property(&ent, "uniforms", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "uniforms"))).unwrap();
-                        system.set_property(&ent, "alpha", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "alpha"))).unwrap();
+                        document.set_property(&ent, "shader", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "shader"))).unwrap();
+                        document.set_property(&ent, "uniforms", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "uniforms"))).unwrap();
+                        document.set_property(&ent, "alpha", Pon::DependencyReference(NamedPropRef::new(EntityPath::Parent, "alpha"))).unwrap();
 
                         let mesh_node = children.iter().find(|x| match x {
                             &&DXNode::Obj { ref name, .. } => name.as_str() == "Mesh",
                             _ => false
                         });
                         if let Some(mesh) = mesh_node {
-                            system.set_property(&ent, "mesh", match mesh.mesh_to_pon() {
+                            document.set_property(&ent, "mesh", match mesh.mesh_to_pon() {
                                 Ok(mesh) => mesh,
                                 Err(err) => panic!("Failed to parse mesh for {:?}: {}", arg, err)
                             }).unwrap();
                         }
                         for n in children {
-                            n.append_to_system(system, &ent, anim_ticks_per_second);
+                            n.append_to_document(document, &ent, anim_ticks_per_second);
                         }
                     },
                     "AnimationSet" => {
-                        system.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.track_set_to_pon(anim_ticks_per_second).unwrap()).unwrap();
+                        document.set_property(parent, &format!("animation_{}", arg.clone().unwrap().to_string()), self.track_set_to_pon(anim_ticks_per_second).unwrap()).unwrap();
                     },
                     "AnimTicksPerSecond" => {
                         anim_ticks_per_second = match children[0] {
